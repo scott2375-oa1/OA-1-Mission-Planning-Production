@@ -124,6 +124,30 @@ body.inputs-hidden #inputs{display:none}
 .f>span{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
   display:flex;align-items:baseline;gap:6px}
 .f.wide{grid-column:1/-1}
+/* Custom LZ entry box (v1.9.19) */
+.lzbtn{font:700 9px var(--mono);color:var(--brass2);background:none;border:1px solid var(--brass2);border-radius:3px;
+  padding:1px 6px;letter-spacing:.05em;cursor:pointer;text-transform:uppercase;margin-left:auto}
+.lzbtn:hover,.lzbtn.on{background:var(--brass);border-color:var(--brass);color:#fff}
+.lzbox{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;padding:8px 10px 10px;
+  border:1px dashed var(--brass2);border-radius:6px;background:var(--panel2)}
+.lzbox[hidden]{display:none !important}
+.lzbox input,.lzbox select{width:100%;box-sizing:border-box}
+.lzbox .hint{white-space:nowrap}
+.lzbox .hint[id$="_lz_mgrs_hint"]{white-space:normal}
+.lzlib{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:8px 10px;padding-top:6px;border-top:1px dashed var(--hair2)}
+.lzlib .btnrow{display:flex;gap:6px;align-items:flex-end}
+.lzlib .btnrow>.f{flex:1}
+.lzbtn2{font:700 10px var(--mono);letter-spacing:.05em;text-transform:uppercase;cursor:pointer;height:30px;padding:0 9px;
+  border:1px solid var(--brass2);border-radius:5px;background:none;color:var(--brass2);white-space:nowrap}
+.lzbtn2:hover{background:var(--brass);border-color:var(--brass);color:#fff}
+.lzbtn2:disabled{opacity:.4;cursor:default}
+.lzbtn2.del{border-color:var(--hair2);color:var(--muted)}
+.lzbtn2.del:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+.lzlib .lzio{display:flex;gap:10px;font:10px var(--mono);color:var(--muted);align-items:center;flex-wrap:wrap}
+.lzlib .lzio{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center}
+.lzlib .lzio #dep_lz_libmsg,.lzlib .lzio #dst_lz_libmsg,.lzlib .lzio #alt_lz_libmsg{grid-column:1/-1;color:var(--ink);white-space:normal;line-height:1.35}
+.lzbox>.lztitle{grid-column:1/-1;font:700 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--brass2)}
+.lzbox>.lznote{grid-column:1/-1;font-size:10.5px;color:var(--muted);margin:0}
 .hint{font:10px var(--mono);color:var(--brass2);text-transform:none;letter-spacing:0}
 .badge{font:700 9px var(--mono);color:#fff;background:var(--brass);border-radius:3px;padding:1px 5px;letter-spacing:.05em}
 .checks{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;padding:2px 0}
@@ -598,13 +622,42 @@ details.assump[open]>summary{margin-bottom:2px}
     <div class="grid">
       <div class="favchips" id="dep_favchips" hidden></div>
       <label class="f wide"><span>Airport search
-          <button type="button" class="favstar" id="dep_favstar" hidden title="Add to favorites">&#9734;</button></span>
+          <button type="button" class="favstar" id="dep_favstar" hidden title="Add to favorites">&#9734;</button>
+          <button type="button" class="lzbtn" id="dep_lzbtn" title="Plan to a landing zone that is not in the airport database">+ Custom LZ</button></span>
         <div class="searchwrap">
           <input id="dep_search" type="text" placeholder="ICAO / FAA id / name / city" autocomplete="off" spellcheck="false">
           <button type="button" class="apclear" id="dep_clear" title="Clear airfield">&times;</button>
           <ul class="suggest" id="dep_suggest" hidden></ul>
         </div>
       </label>
+      <div class="lzbox" id="dep_lzbox" hidden>
+        <div class="lztitle">Custom landing zone</div>
+        <label class="f"><span>LZ length ft</span>
+          <input id="dep_lz_len" type="number" step="10" min="0" placeholder="usable length"></label>
+        <label class="f"><span>LZ slope % <em class="hint">+up</em></span>
+          <input id="dep_lz_slope" type="number" step="0.1" placeholder="0"></label>
+        <label class="f"><span>LZ heading &deg;M</span>
+          <input id="dep_lz_hdg" type="number" min="0" max="360" step="1" placeholder="---"
+            title="Magnetic heading of the landing direction. Converted to true with the variation for the wind component (wind direction is entered in degrees true)."></label>
+        <label class="f"><span>Mag var <em class="hint">&deg;E+ / W&minus;</em></span>
+          <input id="dep_lz_var" type="number" min="-30" max="30" step="0.1" placeholder="0"
+            title="Local magnetic variation: east positive, west negative. Blank = 0."></label>
+        <label class="f"><span>LZ surface</span>
+          <select id="dep_lz_surf"><option value="ASPH">Asphalt</option><option value="CONC">Concrete</option><option value="PAVED">Paved, other</option><option value="TURF">Turf / grass</option><option value="GRVL">Gravel</option><option value="DIRT">Dirt / earth</option><option value="CLAY">Clay</option><option value="SAND">Sand</option><option value="CRUSHED ROCK">Crushed rock</option></select></label>
+        <label class="f wide"><span>LZ location MGRS <em class="hint" id="dep_lz_mgrs_hint">optional</em></span>
+          <input id="dep_lz_mgrs" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 14S PB 83509 41553"></label>
+        <div class="lzlib">
+          <div class="btnrow"><label class="f"><span>LZ name <em class="hint">to save it</em></span>
+            <input id="dep_lz_name" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. Drop Zone Bravo"></label>
+            <button type="button" class="lzbtn2" id="dep_lz_save" title="Save this LZ (length, slope, heading, variation, surface, MGRS, elevation) on this computer under the name">Save LZ</button></div>
+          <div class="btnrow"><label class="f"><span>Saved LZs</span>
+            <select id="dep_lz_pick"><option value="">— recall a saved LZ —</option></select></label>
+            <button type="button" class="lzbtn2 del" id="dep_lz_del" title="Delete the selected saved LZ" disabled>&times;</button></div>
+          <div class="lzio"><button type="button" class="lzbtn2" id="dep_lz_3822" title="Read a filled AF Form 3822 (Landing Zone Survey) PDF: LZ name, length, gradient, magnetic/true heading, elevation, surface and MGRS are pulled into this box and the LZ is saved under its name">Import AF Form 3822</button>
+            <span>Saved LZs are kept on this computer (browser storage).</span><span id="dep_lz_libmsg"></span></div>
+        </div>
+        <p class="lznote">Enter the LZ elevation below. The MGRS location is optional — it gives the great-circle distances used by the mission-fuel estimate. Heading is magnetic; with the variation it converts to true so the wind dir/speed below give the wind component (or use the wind comp override).</p>
+      </div>
       <label class="f wide"><span>Runway / end</span><select id="dep_runway"></select></label>
       <label class="f"><span>Elevation ft <em class="badge" id="dep_elevmode" hidden>MANUAL</em></span>
         <input id="dep_elev" type="number" step="1" placeholder="field elev"></label>
@@ -637,13 +690,42 @@ details.assump[open]>summary{margin-bottom:2px}
     <div class="grid">
       <div class="favchips" id="dst_favchips" hidden></div>
       <label class="f wide"><span>Airport search
-          <button type="button" class="favstar" id="dst_favstar" hidden title="Add to favorites">&#9734;</button></span>
+          <button type="button" class="favstar" id="dst_favstar" hidden title="Add to favorites">&#9734;</button>
+          <button type="button" class="lzbtn" id="dst_lzbtn" title="Plan to a landing zone that is not in the airport database">+ Custom LZ</button></span>
         <div class="searchwrap">
           <input id="dst_search" type="text" placeholder="ICAO / FAA id / name / city" autocomplete="off" spellcheck="false">
           <button type="button" class="apclear" id="dst_clear" title="Clear airfield">&times;</button>
           <ul class="suggest" id="dst_suggest" hidden></ul>
         </div>
       </label>
+      <div class="lzbox" id="dst_lzbox" hidden>
+        <div class="lztitle">Custom landing zone</div>
+        <label class="f"><span>LZ length ft</span>
+          <input id="dst_lz_len" type="number" step="10" min="0" placeholder="usable length"></label>
+        <label class="f"><span>LZ slope % <em class="hint">+up</em></span>
+          <input id="dst_lz_slope" type="number" step="0.1" placeholder="0"></label>
+        <label class="f"><span>LZ heading &deg;M</span>
+          <input id="dst_lz_hdg" type="number" min="0" max="360" step="1" placeholder="---"
+            title="Magnetic heading of the landing direction. Converted to true with the variation for the wind component (wind direction is entered in degrees true)."></label>
+        <label class="f"><span>Mag var <em class="hint">&deg;E+ / W&minus;</em></span>
+          <input id="dst_lz_var" type="number" min="-30" max="30" step="0.1" placeholder="0"
+            title="Local magnetic variation: east positive, west negative. Blank = 0."></label>
+        <label class="f"><span>LZ surface</span>
+          <select id="dst_lz_surf"><option value="ASPH">Asphalt</option><option value="CONC">Concrete</option><option value="PAVED">Paved, other</option><option value="TURF">Turf / grass</option><option value="GRVL">Gravel</option><option value="DIRT">Dirt / earth</option><option value="CLAY">Clay</option><option value="SAND">Sand</option><option value="CRUSHED ROCK">Crushed rock</option></select></label>
+        <label class="f wide"><span>LZ location MGRS <em class="hint" id="dst_lz_mgrs_hint">optional</em></span>
+          <input id="dst_lz_mgrs" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 14S PB 83509 41553"></label>
+        <div class="lzlib">
+          <div class="btnrow"><label class="f"><span>LZ name <em class="hint">to save it</em></span>
+            <input id="dst_lz_name" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. Drop Zone Bravo"></label>
+            <button type="button" class="lzbtn2" id="dst_lz_save" title="Save this LZ (length, slope, heading, variation, surface, MGRS, elevation) on this computer under the name">Save LZ</button></div>
+          <div class="btnrow"><label class="f"><span>Saved LZs</span>
+            <select id="dst_lz_pick"><option value="">— recall a saved LZ —</option></select></label>
+            <button type="button" class="lzbtn2 del" id="dst_lz_del" title="Delete the selected saved LZ" disabled>&times;</button></div>
+          <div class="lzio"><button type="button" class="lzbtn2" id="dst_lz_3822" title="Read a filled AF Form 3822 (Landing Zone Survey) PDF: LZ name, length, gradient, magnetic/true heading, elevation, surface and MGRS are pulled into this box and the LZ is saved under its name">Import AF Form 3822</button>
+            <span>Saved LZs are kept on this computer (browser storage).</span><span id="dst_lz_libmsg"></span></div>
+        </div>
+        <p class="lznote">Enter the LZ elevation below. The MGRS location is optional — it gives the great-circle distances used by the mission-fuel estimate. Heading is magnetic; with the variation it converts to true so the wind dir/speed below give the wind component (or use the wind comp override).</p>
+      </div>
       <label class="f wide"><span>Runway / end</span><select id="dst_runway"></select></label>
       <label class="f"><span>Elevation ft <em class="badge" id="dst_elevmode" hidden>MANUAL</em></span>
         <input id="dst_elev" type="number" step="1" placeholder="field elev"></label>
@@ -678,13 +760,42 @@ details.assump[open]>summary{margin-bottom:2px}
       </div>
       <div class="favchips" id="alt_favchips" hidden></div>
       <label class="f wide"><span>Airport search
-          <button type="button" class="favstar" id="alt_favstar" hidden title="Add to favorites">&#9734;</button></span>
+          <button type="button" class="favstar" id="alt_favstar" hidden title="Add to favorites">&#9734;</button>
+          <button type="button" class="lzbtn" id="alt_lzbtn" title="Plan to a landing zone that is not in the airport database">+ Custom LZ</button></span>
         <div class="searchwrap">
           <input id="alt_search" type="text" placeholder="ICAO / FAA id / name / city" autocomplete="off" spellcheck="false">
           <button type="button" class="apclear" id="alt_clear" title="Clear airfield">&times;</button>
           <ul class="suggest" id="alt_suggest" hidden></ul>
         </div>
       </label>
+      <div class="lzbox" id="alt_lzbox" hidden>
+        <div class="lztitle">Custom landing zone</div>
+        <label class="f"><span>LZ length ft</span>
+          <input id="alt_lz_len" type="number" step="10" min="0" placeholder="usable length"></label>
+        <label class="f"><span>LZ slope % <em class="hint">+up</em></span>
+          <input id="alt_lz_slope" type="number" step="0.1" placeholder="0"></label>
+        <label class="f"><span>LZ heading &deg;M</span>
+          <input id="alt_lz_hdg" type="number" min="0" max="360" step="1" placeholder="---"
+            title="Magnetic heading of the landing direction. Converted to true with the variation for the wind component (wind direction is entered in degrees true)."></label>
+        <label class="f"><span>Mag var <em class="hint">&deg;E+ / W&minus;</em></span>
+          <input id="alt_lz_var" type="number" min="-30" max="30" step="0.1" placeholder="0"
+            title="Local magnetic variation: east positive, west negative. Blank = 0."></label>
+        <label class="f"><span>LZ surface</span>
+          <select id="alt_lz_surf"><option value="ASPH">Asphalt</option><option value="CONC">Concrete</option><option value="PAVED">Paved, other</option><option value="TURF">Turf / grass</option><option value="GRVL">Gravel</option><option value="DIRT">Dirt / earth</option><option value="CLAY">Clay</option><option value="SAND">Sand</option><option value="CRUSHED ROCK">Crushed rock</option></select></label>
+        <label class="f wide"><span>LZ location MGRS <em class="hint" id="alt_lz_mgrs_hint">optional</em></span>
+          <input id="alt_lz_mgrs" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 14S PB 83509 41553"></label>
+        <div class="lzlib">
+          <div class="btnrow"><label class="f"><span>LZ name <em class="hint">to save it</em></span>
+            <input id="alt_lz_name" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. Drop Zone Bravo"></label>
+            <button type="button" class="lzbtn2" id="alt_lz_save" title="Save this LZ (length, slope, heading, variation, surface, MGRS, elevation) on this computer under the name">Save LZ</button></div>
+          <div class="btnrow"><label class="f"><span>Saved LZs</span>
+            <select id="alt_lz_pick"><option value="">— recall a saved LZ —</option></select></label>
+            <button type="button" class="lzbtn2 del" id="alt_lz_del" title="Delete the selected saved LZ" disabled>&times;</button></div>
+          <div class="lzio"><button type="button" class="lzbtn2" id="alt_lz_3822" title="Read a filled AF Form 3822 (Landing Zone Survey) PDF: LZ name, length, gradient, magnetic/true heading, elevation, surface and MGRS are pulled into this box and the LZ is saved under its name">Import AF Form 3822</button>
+            <span>Saved LZs are kept on this computer (browser storage).</span><span id="alt_lz_libmsg"></span></div>
+        </div>
+        <p class="lznote">Enter the LZ elevation below. The MGRS location is optional — it gives the great-circle distances used by the mission-fuel estimate. Heading is magnetic; with the variation it converts to true so the wind dir/speed below give the wind component (or use the wind comp override).</p>
+      </div>
       <label class="f wide"><span>Runway / end</span><select id="alt_runway"></select></label>
       <label class="f"><span>Elevation ft <em class="badge" id="alt_elevmode" hidden>MANUAL</em></span>
         <input id="alt_elev" type="number" step="1" placeholder="field elev"></label>
@@ -769,6 +880,7 @@ details.assump[open]>summary{margin-bottom:2px}
 
 <footer id="screenfooter"><span id="footerText">Computed using OA-1K TOLD engine from TO OA-1K-1 Appendix A (12 SEP 2025 flight test data). PLANNING AID ONLY — verify against the flight manual charts.</span> <span id="footerBuild" class="buildfoot"></span></footer>
 
+<input type="file" id="lz_file" accept=".pdf,application/pdf" hidden>
 <dialog id="aboutModal">
   <div class="modalhead">
     <h2>About &amp; methods</h2>
@@ -2585,6 +2697,191 @@ function loadState(){
 let searchIndex = [], byCode = {};
 let favs = [];
 function apCode(a){ return a.icaoId || a.faaId || a.id; }
+/* ---- Custom LZ (v1.9.19): a landing zone that is not in the airport database.
+   state[side].code === 'LZ' selects a synthetic airfield record built live from
+   the side's LZ fields (length / slope / surface / optional MGRS), so the normal
+   runway-end pipeline (declared length, surface class, slope auto, card headers)
+   runs unchanged. Elevation comes from the side's elevation field. */
+const LZ_CODE = 'LZ';
+const LZ_PLACEHOLDER = { id: LZ_CODE, name: 'Custom LZ', city: 'enter landing-zone data', lz: true, elevFt: null, lat: null, lon: null, runways: [] };
+function lzGrid(side){
+  const el = $(side+'_lz_mgrs'); if(!el) return null;
+  const raw = el.value.trim(); if(!raw) return null;
+  try{
+    if(!window.mgrs) return {raw, bad:true};
+    const ll = window.mgrs.toPoint(raw.toUpperCase().replace(/\s+/g,''));
+    if(!ll || !isFinite(ll[0]) || !isFinite(ll[1])) return {raw, bad:true};
+    const canon = window.mgrs.forward([ll[0], ll[1]], 5);
+    return {raw, lat: ll[1], lon: ll[0], canon, label: canon.replace(/^(\d{1,2}[A-Z])([A-Z]{2})(\d{5})(\d{5})$/, '$1 $2 $3 $4')};
+  }catch(e){ return {raw, bad:true}; }
+}
+function lzRecord(side){
+  const len = num(side+'_lz_len'), slope = num(side+'_lz_slope');
+  const surf = ($(side+'_lz_surf')||{}).value || 'ASPH';
+  const g = lzGrid(side);
+  const hdgM = num(side+'_lz_hdg'), mvar = num(side+'_lz_var') ?? 0;
+  const hdgT = hdgM!=null ? ((hdgM + mvar) % 360 + 360) % 360 : null;
+  const rwy = { id: 'LZ', lengthFt: len, widthFt: null, surface: surf, condition: null,
+                ends: [{ id: 'LZ', trueHdg: hdgT, magHdg: hdgM, magVar: mvar, elevFt: null, displacedThrFt: null, gradientPct: slope, slopeDerived: false }] };
+  const nm = (($(side+'_lz_name')||{}).value||'').trim();
+  return { id: LZ_CODE, name: nm ? nm : 'Custom LZ', lzName: nm, city: '', lz: true, elevFt: null, hdgM, hdgT,
+           lat: (g && !g.bad) ? g.lat : null, lon: (g && !g.bad) ? g.lon : null, grid: g,
+           runways: (len!=null && len>0) ? [rwy] : [] };
+}
+function isLZ(side){ return state[side].code === LZ_CODE; }
+/* two custom LZs are the same field only when name and grid agree */
+function sameField(a, b){ if(!a || !b) return false; if(a.lz || b.lz){ if(!(a.lz && b.lz)) return false; return (a.lzName||'').toLowerCase()===(b.lzName||'').toLowerCase() && ((a.grid&&a.grid.canon)||'')===((b.grid&&b.grid.canon)||''); } return apCode(a)===apCode(b); }
+/* ---- Saved-LZ library (v1.9.21): named LZs kept in browser storage on this
+   computer; export/import as a JSON file to move or share them. */
+const LZ_LIB_KEY = 'oa1k_lz_lib';
+const LZ_FIELDS = ['len','slope','hdg','var','surf','mgrs'];
+function lzLib(){ try{ const o = JSON.parse(localStorage.getItem(LZ_LIB_KEY)); return (o && typeof o==='object') ? o : {}; }catch(e){ return {}; } }
+function lzLibSave(lib){ try{ localStorage.setItem(LZ_LIB_KEY, JSON.stringify(lib)); }catch(e){} }
+function lzLibMsg(side, t, keep){ const m = $(side+'_lz_libmsg'); if(!m) return; m.textContent = t; if(t && !keep) setTimeout(()=>{ if(m.textContent===t) m.textContent=''; }, 2500); }
+function lzCapture(side){
+  const r = {};
+  for(const f of LZ_FIELDS){ const el = $(side+'_lz_'+f); r[f] = el ? el.value : ''; }
+  r.elev = ($(side+'_elev')||{}).value || '';
+  r.saved = new Date().toISOString().slice(0,10);
+  return r;
+}
+function lzApply(side, name, r){
+  for(const f of LZ_FIELDS){ const el = $(side+'_lz_'+f); if(el) el.value = (r[f]!=null ? r[f] : ''); }
+  $(side+'_lz_name').value = name;
+  if(r.elev!==undefined && r.elev!==''){ $(side+'_elev').value = r.elev; state[side].elevMode = 'manual'; $(side+'_elevmode').hidden = false; }
+  $(side+'_search').value = 'LZ — '+name;
+  showLZBox(side); populateRunwaySelect(side); scheduleUpdate();
+}
+function lzFillPick(side){
+  const sel = $(side+'_lz_pick'); if(!sel) return;
+  const cur = sel.value, lib = lzLib();
+  sel.innerHTML = '<option value="">— recall a saved LZ —</option>';
+  for(const name of Object.keys(lib).sort((a,b)=>a.localeCompare(b))){
+    const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o);
+  }
+  sel.value = (cur && lib[cur]) ? cur : '';
+  $(side+'_lz_del').disabled = !sel.value;
+}
+function lzFillPicks(){ for(const sd of ['dep','dst','alt']) lzFillPick(sd); }
+/* ---- AF Form 3822 (Landing Zone Survey) import (v1.9.22) ----
+   Field names are those of the AF 3822 e-form (20210706, DAFMAN 13-217):
+   siteName, lengthAndUnits (Section 6, feet), magnetic1AndUnits / true1AndUnits
+   (Section 7 LZ axis), approach/departureEndElevationAndUnits (Section 8),
+   centerPointMgrs / approachEndMgrs (Section 9), surfaceName (10A),
+   longitudinalRunwayGradient (11B). */
+function lzNum(sv){ const m = String(sv||'').replace(/,/g,'').match(/[-+]?\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : null; }
+function lzFeet(sv){ const v = lzNum(sv); if(v==null) return null; const t = String(sv); return (/\b(m|meters?|metres?)\b/i.test(t) && !/\b(ft|feet|foot)\b/i.test(t)) ? Math.round(v*3.28084) : v; }
+function lzSurfaceCode(t){
+  const x = String(t||'').toLowerCase(); if(!x.trim()) return null;
+  if(/asph|\bac\b|bitum|tarmac|macadam|blacktop/.test(x)) return 'ASPH';
+  if(/concrete|\bpcc\b|\bconc/.test(x)) return 'CONC';
+  if(/crushed|aggregate|\brock\b|caliche/.test(x)) return 'CRUSHED ROCK';
+  if(/gravel|\bgrvl?\b/.test(x)) return 'GRVL';
+  if(/turf|grass|sod|vegetat/.test(x)) return 'TURF';
+  if(/clay/.test(x)) return 'CLAY';
+  if(/sand/.test(x)) return 'SAND';
+  if(/dirt|earth|soil|silt|laterite|unimproved|packed|hard ?pan|semi-?prepared/.test(x)) return 'DIRT';
+  if(/paved|hard ?surface|matting|am-?2|alum/.test(x)) return 'PAVED';
+  return null;
+}
+function lzFrom3822(F){
+  const r = { name: (F.siteName||'').trim(), notes: [], missing: [] };
+  r.len = lzFeet(F.lengthAndUnits); if(r.len==null) r.missing.push('length (6)');
+  const hM = lzNum(F.magnetic1AndUnits), hT = lzNum(F.true1AndUnits);
+  if(hM!=null){ r.hdg = ((hM%360)+360)%360; if(hT!=null){ let d = hT - hM; d = ((d+540)%360)-180; r.var = Math.round(d*10)/10; } else r.notes.push('no true heading on the form - enter the magnetic variation'); }
+  else if(hT!=null){ r.hdg = ((hT%360)+360)%360; r.var = 0; r.notes.push('only a true heading on the form - entered as the heading with 0 variation'); }
+  else r.missing.push('LZ heading (7)');
+  const eA = lzFeet(F.approachEndElevationAndUnits), eD = lzFeet(F.departureEndElevationAndUnits), eH = lzFeet(F.highestElevationAndUnits);
+  r.elev = eA!=null ? eA : (eD!=null ? eD : eH); if(r.elev==null) r.missing.push('elevation (8)');
+  /* gradient: magnitude from 11B, sign from the end elevations when both are given (approach end -> departure end, + = uphill) */
+  const gTxt = String(F.longitudinalRunwayGradient||''); let g = null;
+  const ratio = gTxt.match(/(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)/);
+  if(ratio && +ratio[2]>0) g = 100*(+ratio[1])/(+ratio[2]); else g = lzNum(gTxt);
+  let signed = null; if(eA!=null && eD!=null && r.len>0) signed = (eD-eA)/r.len*100;
+  if(g!=null){ if(signed!=null && Math.abs(signed)>0.01) g = Math.sign(signed)*Math.abs(g); else if(/down/i.test(gTxt) && g>0) g = -g; r.slope = Math.round(g*100)/100; }
+  else if(signed!=null){ r.slope = Math.round(signed*100)/100; r.notes.push('gradient taken from the end elevations'); }
+  else { r.slope = null; r.missing.push('longitudinal gradient (11B)'); }
+  if(r.slope!=null && signed==null) r.notes.push('gradient sign is as written on the form - check it for the landing direction');
+  r.surfText = (F.surfaceName||'').trim(); r.surf = lzSurfaceCode(r.surfText);
+  if(!r.surf){ if(r.surfText) r.notes.push('surface "'+r.surfText+'" not recognized - set as Dirt / earth (unpaved), check it'); else r.missing.push('surface (10A)'); r.surf = 'DIRT'; }
+  const mg = (F.centerPointMgrs||F.approachEndMgrs||'').toUpperCase().replace(/[^0-9A-Z]/g,'');
+  r.mgrs = ''; if(mg){ try{ if(window.mgrs){ const ll = window.mgrs.toPoint(mg); if(ll && isFinite(ll[0])) r.mgrs = window.mgrs.forward([ll[0],ll[1]],5).replace(/^(\d{1,2}[A-Z])([A-Z]{2})(\d{5})(\d{5})$/,'$1 $2 $3 $4'); } }catch(e){} if(!r.mgrs) r.notes.push('MGRS "'+(F.centerPointMgrs||F.approachEndMgrs)+'" not readable'); }
+  r.survey = (F.surveyDate||'').trim();
+  return r;
+}
+function lzImport3822(file, side){
+  const rd = new FileReader();
+  rd.onload = function(){
+    let F;
+    try{ F = PDFForm.readPdfFormFields(rd.result); }
+    catch(e){ lzLibMsg(side, 'AF 3822 not read: '+e.message, true); return; }
+    const known = ['siteName','lengthAndUnits','magnetic1AndUnits','true1AndUnits','approachEndElevationAndUnits','surfaceName','longitudinalRunwayGradient','centerPointMgrs'].filter(k=>F.fields[k]);
+    if(!known.length){ lzLibMsg(side, (F.fieldCount ? 'this PDF has form fields but none of the AF 3822 LZ fields - is it a filled AF Form 3822?' : 'no filled form fields found - the 3822 must be a digitally filled PDF (not a scan)'), true); return; }
+    const r = lzFrom3822(F.fields);
+    if(!isLZ(side)) chooseAirport(side, LZ_PLACEHOLDER);
+    $(side+'_lz_len').value = r.len!=null ? r.len : '';
+    $(side+'_lz_slope').value = r.slope!=null ? r.slope : '';
+    $(side+'_lz_hdg').value = r.hdg!=null ? Math.round(r.hdg) : '';
+    $(side+'_lz_var').value = r.var!=null ? r.var : '';
+    $(side+'_lz_surf').value = r.surf;
+    $(side+'_lz_mgrs').value = r.mgrs;
+    if(r.elev!=null){ $(side+'_elev').value = r.elev; state[side].elevMode = 'manual'; $(side+'_elevmode').hidden = false; }
+    const name = r.name || ('LZ from AF 3822 '+new Date().toISOString().slice(0,10));
+    $(side+'_lz_name').value = name;
+    $(side+'_search').value = 'LZ — '+name;
+    let saved = false;
+    if(r.len!=null){ const lib = lzLib(); const rec = lzCapture(side); rec.src = 'AF3822'; if(r.survey) rec.survey = r.survey; lib[name] = rec; lzLibSave(lib); lzFillPicks(); $(side+'_lz_pick').value = name; $(side+'_lz_del').disabled = false; saved = true; }
+    showLZBox(side); populateRunwaySelect(side); scheduleUpdate();
+    const bits = [];
+    if(r.len!=null) bits.push(fmt(r.len)+' ft'); if(r.slope!=null) bits.push('slope '+fmtSigned(r.slope,'%',2)); if(r.hdg!=null) bits.push('hdg '+String(Math.round(r.hdg)).padStart(3,'0')+'°M'+(r.var!=null?' (var '+fmtSigned(r.var,'°',1)+')':''));
+    bits.push(($(side+'_lz_surf').selectedOptions[0]||{}).textContent||r.surf); if(r.elev!=null) bits.push('elev '+fmt(r.elev)+' ft'); if(r.mgrs) bits.push('MGRS '+r.mgrs);
+    let msg = 'AF 3822 "'+name+'"'+(r.survey?' (surveyed '+r.survey+')':'')+': '+bits.join(' · ')+(saved ? ' — saved as "'+name+'"' : ' — not saved (no length on the form)');
+    if(r.missing.length) msg += '. Not on the form: '+r.missing.join(', ');
+    if(r.notes.length) msg += '. '+r.notes.join('. ');
+    lzLibMsg(side, msg, true);
+  };
+  rd.readAsArrayBuffer(file);
+}
+function bindLZLib(side){
+  const nameEl = $(side+'_lz_name'); if(!nameEl) return;
+  $(side+'_lz_save').addEventListener('click', function(){
+    const name = nameEl.value.trim();
+    if(!name){ lzLibMsg(side, 'enter an LZ name first'); nameEl.focus(); return; }
+    if(num(side+'_lz_len')==null){ lzLibMsg(side, 'enter the LZ length first'); return; }
+    const lib = lzLib(); lib[name] = lzCapture(side); lzLibSave(lib);
+    lzFillPicks(); $(side+'_lz_pick').value = name; $(side+'_lz_del').disabled = false;
+    $(side+'_search').value = 'LZ — '+name; lzLibMsg(side, 'saved "'+name+'"'); scheduleUpdate();
+  });
+  $(side+'_lz_pick').addEventListener('change', function(){
+    const name = this.value; $(side+'_lz_del').disabled = !name;
+    if(!name) return;
+    const r = lzLib()[name]; if(r) lzApply(side, name, r);
+  });
+  $(side+'_lz_del').addEventListener('click', function(){
+    const name = $(side+'_lz_pick').value; if(!name) return;
+    if(!confirm('Delete saved LZ "'+name+'"?')) return;
+    const lib = lzLib(); delete lib[name]; lzLibSave(lib); lzFillPicks(); lzLibMsg(side, 'deleted "'+name+'"');
+  });
+  $(side+'_lz_3822').addEventListener('click', function(){
+    const fi = $('lz_file'); lzImportSide = side; fi.value = ''; fi.click();
+  });
+}
+let lzImportSide = 'dep';
+function bindLZFile(){
+  const fi = $('lz_file'); if(!fi) return;
+  fi.addEventListener('change', function(){ if(fi.files && fi.files[0]) lzImport3822(fi.files[0], lzImportSide); });
+}
+function showLZBox(side){
+  const box = $(side+'_lzbox'); if(box) box.hidden = !isLZ(side);
+  const btn = $(side+'_lzbtn'); if(btn) btn.classList.toggle('on', isLZ(side));
+  const mh = $(side+'_lz_mgrs_hint');
+  if(mh){
+    const g = isLZ(side) ? lzGrid(side) : null;
+    if(!g) mh.textContent = 'optional';
+    else if(g.bad) mh.textContent = 'not a valid MGRS grid';
+    else mh.textContent = g.label+' · '+fmtLL(g.lat, g.lon);
+  }
+}
 function buildIndex(){
   const list = (typeof AIRPORTS !== 'undefined' && AIRPORTS.airports) ? AIRPORTS.airports : [];
   for(const a of list){
@@ -2594,11 +2891,19 @@ function buildIndex(){
     if(a.icaoId) byCode[a.icaoId] = a;
     if(a.faaId) byCode[a.faaId] = a;
   }
+  /* Custom LZ pseudo-entry: found by typing "lz", "custom" or "landing zone" */
+  byCode[LZ_CODE] = LZ_PLACEHOLDER;
+  searchIndex.unshift({ key: 'lz custom landing zone', a: LZ_PLACEHOLDER });
 }
 function searchAirports(q){
   q = q.trim().toLowerCase();
   if(q.length < 2) return [];
   const starts=[], contains=[];
+  /* saved LZs first, matched on their name */
+  const lib = lzLib();
+  for(const name of Object.keys(lib).sort()){
+    if(name.toLowerCase().indexOf(q)>=0) starts.push({ id: LZ_CODE, name: name, city: 'saved LZ', lz: true, savedLZ: name, elevFt:null, lat:null, lon:null, runways:[] });
+  }
   for(let i=0;i<searchIndex.length && (starts.length+contains.length)<250;i++){
     const e = searchIndex[i];
     const idHit = (e.a.icaoId && e.a.icaoId.toLowerCase().indexOf(q)===0) ||
@@ -2630,6 +2935,7 @@ function endOptions(a, windDir, windSpd){
     (rwy.ends||[]).forEach(function(end, ei){
       const d = declaredFor(rwy, end);
       const bits = [end.id||'?'];
+      if(end.magHdg!=null) bits.push(String(Math.round(end.magHdg)).padStart(3,'0')+'°M ('+String(Math.round(end.trueHdg)).padStart(3,'0')+'°T)');
       if(rwy.lengthFt!=null) bits.push(fmt(rwy.lengthFt)+' ft');
       if(rwy.surface) bits.push(rwy.surface + (rwy.condition ? ' '+rwy.condition : ''));
       if(end.gradientPct!=null) bits.push('slope '+fmtSigned(end.gradientPct,'%',2));
@@ -2646,7 +2952,7 @@ function endOptions(a, windDir, windSpd){
   if(best) best.label = '★ ' + best.label;
   return out;
 }
-function selectedAirport(side){ return state[side].code ? byCode[state[side].code] : null; }
+function selectedAirport(side){ if(isLZ(side)) return lzRecord(side); return state[side].code ? byCode[state[side].code] : null; }
 function selectedEnd(side){
   const a = selectedAirport(side); if(!a) return null;
   const val = $(side+'_runway').value; if(!val) return null;
@@ -2703,6 +3009,7 @@ function clearAirport(side){
   $(side+'_suggest').hidden = true;
   $(side+'_elev').value = ''; $(side+'_len').value = '';
   $(side+'_elevmode').hidden = true; $(side+'_lenmode').hidden = true;
+  showLZBox(side);
   populateRunwaySelect(side);
   scheduleUpdate();
 }
@@ -2712,6 +3019,9 @@ function chooseAirport(side, a){
   $(side+'_search').value = apCode(a)+' — '+(a.name||'');
   $(side+'_suggest').hidden = true;
   $(side+'_elevmode').hidden = true; $(side+'_lenmode').hidden = true;
+  showLZBox(side);
+  if(a.lz && a.savedLZ){ const r = lzLib()[a.savedLZ]; if(r){ lzApply(side, a.savedLZ, r); $(side+'_lz_pick').value = a.savedLZ; $(side+'_lz_del').disabled = false; renderFavs(); return; } }
+  if(a.lz){ $(side+'_elev').value = ''; $(side+'_len').value = ''; $(side+'_lz_name').value = ''; $(side+'_lz_pick').value = ''; $(side+'_lz_del').disabled = true; setTimeout(()=>{ const el=$(side+'_lz_len'); if(el && !el.value) el.focus(); }, 0); }
   populateRunwaySelect(side);
   renderFavs();
   scheduleUpdate();
@@ -2724,7 +3034,8 @@ function bindSearch(side){
     if(!rs.length){ ul.hidden = true; return; }
     for(const a of rs){
       const li = document.createElement('li');
-      li.innerHTML = '<b>'+esc(apCode(a))+'</b> '+esc(a.name||'')+' <span class="dim">'+esc([a.city,a.state].filter(Boolean).join(', '))+'</span>';
+      li.innerHTML = a.lz ? '<b>+ '+esc(a.name)+'</b> <span class="dim">'+esc(a.city)+'</span>'
+                          : '<b>'+esc(apCode(a))+'</b> '+esc(a.name||'')+' <span class="dim">'+esc([a.city,a.state].filter(Boolean).join(', '))+'</span>';
       li.addEventListener('mousedown', function(ev){ ev.preventDefault(); chooseAirport(side, a); });
       ul.appendChild(li);
     }
@@ -2743,7 +3054,7 @@ function renderFavs(){
     const wrap = $(side+'_favchips');
     const star = $(side+'_favstar');
     const a = selectedAirport(side);
-    star.hidden = !a;
+    star.hidden = !a || !!a.lz;
     if(a){ star.textContent = favs.indexOf(apCode(a))>=0 ? '★' : '☆'; }
     if(!favs.length){ wrap.hidden = true; continue; }
     wrap.hidden = false;
@@ -3118,6 +3429,12 @@ function computeCruise(cru, warn, wb, dep, dst){
 
 /* ---------------- compute + render ---------------- */
 let statusItems = [];
+/* LZ heading given with wind dir but no variation: the heading is being used as true */
+function lzWarns(side, warn){
+  if(!isLZ(side) || !warn) return;
+  if(num(side+'_lz_hdg')!=null && num(side+'_lz_var')===null && num(side+'_wdir')!=null && num(side+'_windovr')===null)
+    warn.push({lv:'warn', t:'LZ heading treated as true - no magnetic variation entered'});
+}
 function gatherAirfield(side, role){
   const a = selectedAirport(side);
   const se = selectedEnd(side);
@@ -3125,8 +3442,8 @@ function gatherAirfield(side, role){
   const slope = slopeOvr!==null ? slopeOvr : ((se && se.end.gradientPct!=null) ? se.end.gradientPct : 0);
   return {
     role,
-    name: a ? (apCode(a)+' '+(a.name||'')) : 'MANUAL',
-    rwyLabel: se ? ('RWY '+(se.end.id||'?')) : '',
+    name: a ? (a.lz ? (a.lzName ? 'LZ '+a.lzName.toUpperCase() : 'CUSTOM LZ') : (apCode(a)+' '+(a.name||''))) : 'MANUAL',
+    rwyLabel: se ? (se.end.magHdg!=null ? ('LZ HDG '+String(Math.round(se.end.magHdg)).padStart(3,'0')+'°M') : ('RWY '+(se.end.id||'?'))) : '',
     elevFt: num(side+'_elev') ?? (a ? a.elevFt : null),
     altim: num(side+'_altim'),
     oat: num(side+'_oat'),
@@ -3164,6 +3481,300 @@ function pushWarns(prefix, warns){
 let cruTripManual = false;   /* user clicked the One-way/Orbit toggle */
 /* sync the trip-type toggle + dependent field visibility; safe to call any time,
    including when computeAll bails early on missing inputs */
+/* pako 2.1.0 inflate (MIT AND Zlib) - inlined unmodified for reading FlateDecode PDF streams (AF 3822 import) */
+/*! pako 2.1.0 https://github.com/nodeca/pako @license (MIT AND Zlib) */
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).pako={})}(this,(function(e){"use strict";var t=(e,t,i,n)=>{let a=65535&e|0,r=e>>>16&65535|0,o=0;for(;0!==i;){o=i>2e3?2e3:i,i-=o;do{a=a+t[n++]|0,r=r+a|0}while(--o);a%=65521,r%=65521}return a|r<<16|0};const i=new Uint32Array((()=>{let e,t=[];for(var i=0;i<256;i++){e=i;for(var n=0;n<8;n++)e=1&e?3988292384^e>>>1:e>>>1;t[i]=e}return t})());var n=(e,t,n,a)=>{const r=i,o=a+n;e^=-1;for(let i=a;i<o;i++)e=e>>>8^r[255&(e^t[i])];return-1^e};const a=16209;var r=function(e,t){let i,n,r,o,s,l,d,f,c,h,u,w,b,m,k,_,g,p,v,x,y,E,R,A;const Z=e.state;i=e.next_in,R=e.input,n=i+(e.avail_in-5),r=e.next_out,A=e.output,o=r-(t-e.avail_out),s=r+(e.avail_out-257),l=Z.dmax,d=Z.wsize,f=Z.whave,c=Z.wnext,h=Z.window,u=Z.hold,w=Z.bits,b=Z.lencode,m=Z.distcode,k=(1<<Z.lenbits)-1,_=(1<<Z.distbits)-1;e:do{w<15&&(u+=R[i++]<<w,w+=8,u+=R[i++]<<w,w+=8),g=b[u&k];t:for(;;){if(p=g>>>24,u>>>=p,w-=p,p=g>>>16&255,0===p)A[r++]=65535&g;else{if(!(16&p)){if(0==(64&p)){g=b[(65535&g)+(u&(1<<p)-1)];continue t}if(32&p){Z.mode=16191;break e}e.msg="invalid literal/length code",Z.mode=a;break e}v=65535&g,p&=15,p&&(w<p&&(u+=R[i++]<<w,w+=8),v+=u&(1<<p)-1,u>>>=p,w-=p),w<15&&(u+=R[i++]<<w,w+=8,u+=R[i++]<<w,w+=8),g=m[u&_];i:for(;;){if(p=g>>>24,u>>>=p,w-=p,p=g>>>16&255,!(16&p)){if(0==(64&p)){g=m[(65535&g)+(u&(1<<p)-1)];continue i}e.msg="invalid distance code",Z.mode=a;break e}if(x=65535&g,p&=15,w<p&&(u+=R[i++]<<w,w+=8,w<p&&(u+=R[i++]<<w,w+=8)),x+=u&(1<<p)-1,x>l){e.msg="invalid distance too far back",Z.mode=a;break e}if(u>>>=p,w-=p,p=r-o,x>p){if(p=x-p,p>f&&Z.sane){e.msg="invalid distance too far back",Z.mode=a;break e}if(y=0,E=h,0===c){if(y+=d-p,p<v){v-=p;do{A[r++]=h[y++]}while(--p);y=r-x,E=A}}else if(c<p){if(y+=d+c-p,p-=c,p<v){v-=p;do{A[r++]=h[y++]}while(--p);if(y=0,c<v){p=c,v-=p;do{A[r++]=h[y++]}while(--p);y=r-x,E=A}}}else if(y+=c-p,p<v){v-=p;do{A[r++]=h[y++]}while(--p);y=r-x,E=A}for(;v>2;)A[r++]=E[y++],A[r++]=E[y++],A[r++]=E[y++],v-=3;v&&(A[r++]=E[y++],v>1&&(A[r++]=E[y++]))}else{y=r-x;do{A[r++]=A[y++],A[r++]=A[y++],A[r++]=A[y++],v-=3}while(v>2);v&&(A[r++]=A[y++],v>1&&(A[r++]=A[y++]))}break}}break}}while(i<n&&r<s);v=w>>3,i-=v,w-=v<<3,u&=(1<<w)-1,e.next_in=i,e.next_out=r,e.avail_in=i<n?n-i+5:5-(i-n),e.avail_out=r<s?s-r+257:257-(r-s),Z.hold=u,Z.bits=w};const o=15,s=new Uint16Array([3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0]),l=new Uint8Array([16,16,16,16,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,16,72,78]),d=new Uint16Array([1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577,0,0]),f=new Uint8Array([16,16,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,64,64]);var c=(e,t,i,n,a,r,c,h)=>{const u=h.bits;let w,b,m,k,_,g,p=0,v=0,x=0,y=0,E=0,R=0,A=0,Z=0,S=0,T=0,O=null;const U=new Uint16Array(16),D=new Uint16Array(16);let I,B,N,C=null;for(p=0;p<=o;p++)U[p]=0;for(v=0;v<n;v++)U[t[i+v]]++;for(E=u,y=o;y>=1&&0===U[y];y--);if(E>y&&(E=y),0===y)return a[r++]=20971520,a[r++]=20971520,h.bits=1,0;for(x=1;x<y&&0===U[x];x++);for(E<x&&(E=x),Z=1,p=1;p<=o;p++)if(Z<<=1,Z-=U[p],Z<0)return-1;if(Z>0&&(0===e||1!==y))return-1;for(D[1]=0,p=1;p<o;p++)D[p+1]=D[p]+U[p];for(v=0;v<n;v++)0!==t[i+v]&&(c[D[t[i+v]]++]=v);if(0===e?(O=C=c,g=20):1===e?(O=s,C=l,g=257):(O=d,C=f,g=0),T=0,v=0,p=x,_=r,R=E,A=0,m=-1,S=1<<E,k=S-1,1===e&&S>852||2===e&&S>592)return 1;for(;;){I=p-A,c[v]+1<g?(B=0,N=c[v]):c[v]>=g?(B=C[c[v]-g],N=O[c[v]-g]):(B=96,N=0),w=1<<p-A,b=1<<R,x=b;do{b-=w,a[_+(T>>A)+b]=I<<24|B<<16|N|0}while(0!==b);for(w=1<<p-1;T&w;)w>>=1;if(0!==w?(T&=w-1,T+=w):T=0,v++,0==--U[p]){if(p===y)break;p=t[i+c[v]]}if(p>E&&(T&k)!==m){for(0===A&&(A=E),_+=x,R=p-A,Z=1<<R;R+A<y&&(Z-=U[R+A],!(Z<=0));)R++,Z<<=1;if(S+=1<<R,1===e&&S>852||2===e&&S>592)return 1;m=T&k,a[m]=E<<24|R<<16|_-r|0}}return 0!==T&&(a[_+T]=p-A<<24|64<<16|0),h.bits=E,0},h={Z_NO_FLUSH:0,Z_PARTIAL_FLUSH:1,Z_SYNC_FLUSH:2,Z_FULL_FLUSH:3,Z_FINISH:4,Z_BLOCK:5,Z_TREES:6,Z_OK:0,Z_STREAM_END:1,Z_NEED_DICT:2,Z_ERRNO:-1,Z_STREAM_ERROR:-2,Z_DATA_ERROR:-3,Z_MEM_ERROR:-4,Z_BUF_ERROR:-5,Z_NO_COMPRESSION:0,Z_BEST_SPEED:1,Z_BEST_COMPRESSION:9,Z_DEFAULT_COMPRESSION:-1,Z_FILTERED:1,Z_HUFFMAN_ONLY:2,Z_RLE:3,Z_FIXED:4,Z_DEFAULT_STRATEGY:0,Z_BINARY:0,Z_TEXT:1,Z_UNKNOWN:2,Z_DEFLATED:8};const{Z_FINISH:u,Z_BLOCK:w,Z_TREES:b,Z_OK:m,Z_STREAM_END:k,Z_NEED_DICT:_,Z_STREAM_ERROR:g,Z_DATA_ERROR:p,Z_MEM_ERROR:v,Z_BUF_ERROR:x,Z_DEFLATED:y}=h,E=16180,R=16190,A=16191,Z=16192,S=16194,T=16199,O=16200,U=16206,D=16209,I=e=>(e>>>24&255)+(e>>>8&65280)+((65280&e)<<8)+((255&e)<<24);function B(){this.strm=null,this.mode=0,this.last=!1,this.wrap=0,this.havedict=!1,this.flags=0,this.dmax=0,this.check=0,this.total=0,this.head=null,this.wbits=0,this.wsize=0,this.whave=0,this.wnext=0,this.window=null,this.hold=0,this.bits=0,this.length=0,this.offset=0,this.extra=0,this.lencode=null,this.distcode=null,this.lenbits=0,this.distbits=0,this.ncode=0,this.nlen=0,this.ndist=0,this.have=0,this.next=null,this.lens=new Uint16Array(320),this.work=new Uint16Array(288),this.lendyn=null,this.distdyn=null,this.sane=0,this.back=0,this.was=0}const N=e=>{if(!e)return 1;const t=e.state;return!t||t.strm!==e||t.mode<E||t.mode>16211?1:0},C=e=>{if(N(e))return g;const t=e.state;return e.total_in=e.total_out=t.total=0,e.msg="",t.wrap&&(e.adler=1&t.wrap),t.mode=E,t.last=0,t.havedict=0,t.flags=-1,t.dmax=32768,t.head=null,t.hold=0,t.bits=0,t.lencode=t.lendyn=new Int32Array(852),t.distcode=t.distdyn=new Int32Array(592),t.sane=1,t.back=-1,m},z=e=>{if(N(e))return g;const t=e.state;return t.wsize=0,t.whave=0,t.wnext=0,C(e)},F=(e,t)=>{let i;if(N(e))return g;const n=e.state;return t<0?(i=0,t=-t):(i=5+(t>>4),t<48&&(t&=15)),t&&(t<8||t>15)?g:(null!==n.window&&n.wbits!==t&&(n.window=null),n.wrap=i,n.wbits=t,z(e))},L=(e,t)=>{if(!e)return g;const i=new B;e.state=i,i.strm=e,i.window=null,i.mode=E;const n=F(e,t);return n!==m&&(e.state=null),n};let M,H,j=!0;const K=e=>{if(j){M=new Int32Array(512),H=new Int32Array(32);let t=0;for(;t<144;)e.lens[t++]=8;for(;t<256;)e.lens[t++]=9;for(;t<280;)e.lens[t++]=7;for(;t<288;)e.lens[t++]=8;for(c(1,e.lens,0,288,M,0,e.work,{bits:9}),t=0;t<32;)e.lens[t++]=5;c(2,e.lens,0,32,H,0,e.work,{bits:5}),j=!1}e.lencode=M,e.lenbits=9,e.distcode=H,e.distbits=5},P=(e,t,i,n)=>{let a;const r=e.state;return null===r.window&&(r.wsize=1<<r.wbits,r.wnext=0,r.whave=0,r.window=new Uint8Array(r.wsize)),n>=r.wsize?(r.window.set(t.subarray(i-r.wsize,i),0),r.wnext=0,r.whave=r.wsize):(a=r.wsize-r.wnext,a>n&&(a=n),r.window.set(t.subarray(i-n,i-n+a),r.wnext),(n-=a)?(r.window.set(t.subarray(i-n,i),0),r.wnext=n,r.whave=r.wsize):(r.wnext+=a,r.wnext===r.wsize&&(r.wnext=0),r.whave<r.wsize&&(r.whave+=a))),0};var Y={inflateReset:z,inflateReset2:F,inflateResetKeep:C,inflateInit:e=>L(e,15),inflateInit2:L,inflate:(e,i)=>{let a,o,s,l,d,f,h,B,C,z,F,L,M,H,j,Y,G,X,W,q,J,Q,V=0;const $=new Uint8Array(4);let ee,te;const ie=new Uint8Array([16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15]);if(N(e)||!e.output||!e.input&&0!==e.avail_in)return g;a=e.state,a.mode===A&&(a.mode=Z),d=e.next_out,s=e.output,h=e.avail_out,l=e.next_in,o=e.input,f=e.avail_in,B=a.hold,C=a.bits,z=f,F=h,Q=m;e:for(;;)switch(a.mode){case E:if(0===a.wrap){a.mode=Z;break}for(;C<16;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(2&a.wrap&&35615===B){0===a.wbits&&(a.wbits=15),a.check=0,$[0]=255&B,$[1]=B>>>8&255,a.check=n(a.check,$,2,0),B=0,C=0,a.mode=16181;break}if(a.head&&(a.head.done=!1),!(1&a.wrap)||(((255&B)<<8)+(B>>8))%31){e.msg="incorrect header check",a.mode=D;break}if((15&B)!==y){e.msg="unknown compression method",a.mode=D;break}if(B>>>=4,C-=4,J=8+(15&B),0===a.wbits&&(a.wbits=J),J>15||J>a.wbits){e.msg="invalid window size",a.mode=D;break}a.dmax=1<<a.wbits,a.flags=0,e.adler=a.check=1,a.mode=512&B?16189:A,B=0,C=0;break;case 16181:for(;C<16;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(a.flags=B,(255&a.flags)!==y){e.msg="unknown compression method",a.mode=D;break}if(57344&a.flags){e.msg="unknown header flags set",a.mode=D;break}a.head&&(a.head.text=B>>8&1),512&a.flags&&4&a.wrap&&($[0]=255&B,$[1]=B>>>8&255,a.check=n(a.check,$,2,0)),B=0,C=0,a.mode=16182;case 16182:for(;C<32;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}a.head&&(a.head.time=B),512&a.flags&&4&a.wrap&&($[0]=255&B,$[1]=B>>>8&255,$[2]=B>>>16&255,$[3]=B>>>24&255,a.check=n(a.check,$,4,0)),B=0,C=0,a.mode=16183;case 16183:for(;C<16;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}a.head&&(a.head.xflags=255&B,a.head.os=B>>8),512&a.flags&&4&a.wrap&&($[0]=255&B,$[1]=B>>>8&255,a.check=n(a.check,$,2,0)),B=0,C=0,a.mode=16184;case 16184:if(1024&a.flags){for(;C<16;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}a.length=B,a.head&&(a.head.extra_len=B),512&a.flags&&4&a.wrap&&($[0]=255&B,$[1]=B>>>8&255,a.check=n(a.check,$,2,0)),B=0,C=0}else a.head&&(a.head.extra=null);a.mode=16185;case 16185:if(1024&a.flags&&(L=a.length,L>f&&(L=f),L&&(a.head&&(J=a.head.extra_len-a.length,a.head.extra||(a.head.extra=new Uint8Array(a.head.extra_len)),a.head.extra.set(o.subarray(l,l+L),J)),512&a.flags&&4&a.wrap&&(a.check=n(a.check,o,L,l)),f-=L,l+=L,a.length-=L),a.length))break e;a.length=0,a.mode=16186;case 16186:if(2048&a.flags){if(0===f)break e;L=0;do{J=o[l+L++],a.head&&J&&a.length<65536&&(a.head.name+=String.fromCharCode(J))}while(J&&L<f);if(512&a.flags&&4&a.wrap&&(a.check=n(a.check,o,L,l)),f-=L,l+=L,J)break e}else a.head&&(a.head.name=null);a.length=0,a.mode=16187;case 16187:if(4096&a.flags){if(0===f)break e;L=0;do{J=o[l+L++],a.head&&J&&a.length<65536&&(a.head.comment+=String.fromCharCode(J))}while(J&&L<f);if(512&a.flags&&4&a.wrap&&(a.check=n(a.check,o,L,l)),f-=L,l+=L,J)break e}else a.head&&(a.head.comment=null);a.mode=16188;case 16188:if(512&a.flags){for(;C<16;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(4&a.wrap&&B!==(65535&a.check)){e.msg="header crc mismatch",a.mode=D;break}B=0,C=0}a.head&&(a.head.hcrc=a.flags>>9&1,a.head.done=!0),e.adler=a.check=0,a.mode=A;break;case 16189:for(;C<32;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}e.adler=a.check=I(B),B=0,C=0,a.mode=R;case R:if(0===a.havedict)return e.next_out=d,e.avail_out=h,e.next_in=l,e.avail_in=f,a.hold=B,a.bits=C,_;e.adler=a.check=1,a.mode=A;case A:if(i===w||i===b)break e;case Z:if(a.last){B>>>=7&C,C-=7&C,a.mode=U;break}for(;C<3;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}switch(a.last=1&B,B>>>=1,C-=1,3&B){case 0:a.mode=16193;break;case 1:if(K(a),a.mode=T,i===b){B>>>=2,C-=2;break e}break;case 2:a.mode=16196;break;case 3:e.msg="invalid block type",a.mode=D}B>>>=2,C-=2;break;case 16193:for(B>>>=7&C,C-=7&C;C<32;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if((65535&B)!=(B>>>16^65535)){e.msg="invalid stored block lengths",a.mode=D;break}if(a.length=65535&B,B=0,C=0,a.mode=S,i===b)break e;case S:a.mode=16195;case 16195:if(L=a.length,L){if(L>f&&(L=f),L>h&&(L=h),0===L)break e;s.set(o.subarray(l,l+L),d),f-=L,l+=L,h-=L,d+=L,a.length-=L;break}a.mode=A;break;case 16196:for(;C<14;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(a.nlen=257+(31&B),B>>>=5,C-=5,a.ndist=1+(31&B),B>>>=5,C-=5,a.ncode=4+(15&B),B>>>=4,C-=4,a.nlen>286||a.ndist>30){e.msg="too many length or distance symbols",a.mode=D;break}a.have=0,a.mode=16197;case 16197:for(;a.have<a.ncode;){for(;C<3;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}a.lens[ie[a.have++]]=7&B,B>>>=3,C-=3}for(;a.have<19;)a.lens[ie[a.have++]]=0;if(a.lencode=a.lendyn,a.lenbits=7,ee={bits:a.lenbits},Q=c(0,a.lens,0,19,a.lencode,0,a.work,ee),a.lenbits=ee.bits,Q){e.msg="invalid code lengths set",a.mode=D;break}a.have=0,a.mode=16198;case 16198:for(;a.have<a.nlen+a.ndist;){for(;V=a.lencode[B&(1<<a.lenbits)-1],j=V>>>24,Y=V>>>16&255,G=65535&V,!(j<=C);){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(G<16)B>>>=j,C-=j,a.lens[a.have++]=G;else{if(16===G){for(te=j+2;C<te;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(B>>>=j,C-=j,0===a.have){e.msg="invalid bit length repeat",a.mode=D;break}J=a.lens[a.have-1],L=3+(3&B),B>>>=2,C-=2}else if(17===G){for(te=j+3;C<te;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}B>>>=j,C-=j,J=0,L=3+(7&B),B>>>=3,C-=3}else{for(te=j+7;C<te;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}B>>>=j,C-=j,J=0,L=11+(127&B),B>>>=7,C-=7}if(a.have+L>a.nlen+a.ndist){e.msg="invalid bit length repeat",a.mode=D;break}for(;L--;)a.lens[a.have++]=J}}if(a.mode===D)break;if(0===a.lens[256]){e.msg="invalid code -- missing end-of-block",a.mode=D;break}if(a.lenbits=9,ee={bits:a.lenbits},Q=c(1,a.lens,0,a.nlen,a.lencode,0,a.work,ee),a.lenbits=ee.bits,Q){e.msg="invalid literal/lengths set",a.mode=D;break}if(a.distbits=6,a.distcode=a.distdyn,ee={bits:a.distbits},Q=c(2,a.lens,a.nlen,a.ndist,a.distcode,0,a.work,ee),a.distbits=ee.bits,Q){e.msg="invalid distances set",a.mode=D;break}if(a.mode=T,i===b)break e;case T:a.mode=O;case O:if(f>=6&&h>=258){e.next_out=d,e.avail_out=h,e.next_in=l,e.avail_in=f,a.hold=B,a.bits=C,r(e,F),d=e.next_out,s=e.output,h=e.avail_out,l=e.next_in,o=e.input,f=e.avail_in,B=a.hold,C=a.bits,a.mode===A&&(a.back=-1);break}for(a.back=0;V=a.lencode[B&(1<<a.lenbits)-1],j=V>>>24,Y=V>>>16&255,G=65535&V,!(j<=C);){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(Y&&0==(240&Y)){for(X=j,W=Y,q=G;V=a.lencode[q+((B&(1<<X+W)-1)>>X)],j=V>>>24,Y=V>>>16&255,G=65535&V,!(X+j<=C);){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}B>>>=X,C-=X,a.back+=X}if(B>>>=j,C-=j,a.back+=j,a.length=G,0===Y){a.mode=16205;break}if(32&Y){a.back=-1,a.mode=A;break}if(64&Y){e.msg="invalid literal/length code",a.mode=D;break}a.extra=15&Y,a.mode=16201;case 16201:if(a.extra){for(te=a.extra;C<te;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}a.length+=B&(1<<a.extra)-1,B>>>=a.extra,C-=a.extra,a.back+=a.extra}a.was=a.length,a.mode=16202;case 16202:for(;V=a.distcode[B&(1<<a.distbits)-1],j=V>>>24,Y=V>>>16&255,G=65535&V,!(j<=C);){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(0==(240&Y)){for(X=j,W=Y,q=G;V=a.distcode[q+((B&(1<<X+W)-1)>>X)],j=V>>>24,Y=V>>>16&255,G=65535&V,!(X+j<=C);){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}B>>>=X,C-=X,a.back+=X}if(B>>>=j,C-=j,a.back+=j,64&Y){e.msg="invalid distance code",a.mode=D;break}a.offset=G,a.extra=15&Y,a.mode=16203;case 16203:if(a.extra){for(te=a.extra;C<te;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}a.offset+=B&(1<<a.extra)-1,B>>>=a.extra,C-=a.extra,a.back+=a.extra}if(a.offset>a.dmax){e.msg="invalid distance too far back",a.mode=D;break}a.mode=16204;case 16204:if(0===h)break e;if(L=F-h,a.offset>L){if(L=a.offset-L,L>a.whave&&a.sane){e.msg="invalid distance too far back",a.mode=D;break}L>a.wnext?(L-=a.wnext,M=a.wsize-L):M=a.wnext-L,L>a.length&&(L=a.length),H=a.window}else H=s,M=d-a.offset,L=a.length;L>h&&(L=h),h-=L,a.length-=L;do{s[d++]=H[M++]}while(--L);0===a.length&&(a.mode=O);break;case 16205:if(0===h)break e;s[d++]=a.length,h--,a.mode=O;break;case U:if(a.wrap){for(;C<32;){if(0===f)break e;f--,B|=o[l++]<<C,C+=8}if(F-=h,e.total_out+=F,a.total+=F,4&a.wrap&&F&&(e.adler=a.check=a.flags?n(a.check,s,F,d-F):t(a.check,s,F,d-F)),F=h,4&a.wrap&&(a.flags?B:I(B))!==a.check){e.msg="incorrect data check",a.mode=D;break}B=0,C=0}a.mode=16207;case 16207:if(a.wrap&&a.flags){for(;C<32;){if(0===f)break e;f--,B+=o[l++]<<C,C+=8}if(4&a.wrap&&B!==(4294967295&a.total)){e.msg="incorrect length check",a.mode=D;break}B=0,C=0}a.mode=16208;case 16208:Q=k;break e;case D:Q=p;break e;case 16210:return v;default:return g}return e.next_out=d,e.avail_out=h,e.next_in=l,e.avail_in=f,a.hold=B,a.bits=C,(a.wsize||F!==e.avail_out&&a.mode<D&&(a.mode<U||i!==u))&&P(e,e.output,e.next_out,F-e.avail_out),z-=e.avail_in,F-=e.avail_out,e.total_in+=z,e.total_out+=F,a.total+=F,4&a.wrap&&F&&(e.adler=a.check=a.flags?n(a.check,s,F,e.next_out-F):t(a.check,s,F,e.next_out-F)),e.data_type=a.bits+(a.last?64:0)+(a.mode===A?128:0)+(a.mode===T||a.mode===S?256:0),(0===z&&0===F||i===u)&&Q===m&&(Q=x),Q},inflateEnd:e=>{if(N(e))return g;let t=e.state;return t.window&&(t.window=null),e.state=null,m},inflateGetHeader:(e,t)=>{if(N(e))return g;const i=e.state;return 0==(2&i.wrap)?g:(i.head=t,t.done=!1,m)},inflateSetDictionary:(e,i)=>{const n=i.length;let a,r,o;return N(e)?g:(a=e.state,0!==a.wrap&&a.mode!==R?g:a.mode===R&&(r=1,r=t(r,i,n,0),r!==a.check)?p:(o=P(e,i,n,n),o?(a.mode=16210,v):(a.havedict=1,m)))},inflateInfo:"pako inflate (from Nodeca project)"};const G=(e,t)=>Object.prototype.hasOwnProperty.call(e,t);var X=function(e){const t=Array.prototype.slice.call(arguments,1);for(;t.length;){const i=t.shift();if(i){if("object"!=typeof i)throw new TypeError(i+"must be non-object");for(const t in i)G(i,t)&&(e[t]=i[t])}}return e},W=e=>{let t=0;for(let i=0,n=e.length;i<n;i++)t+=e[i].length;const i=new Uint8Array(t);for(let t=0,n=0,a=e.length;t<a;t++){let a=e[t];i.set(a,n),n+=a.length}return i};let q=!0;try{String.fromCharCode.apply(null,new Uint8Array(1))}catch(e){q=!1}const J=new Uint8Array(256);for(let e=0;e<256;e++)J[e]=e>=252?6:e>=248?5:e>=240?4:e>=224?3:e>=192?2:1;J[254]=J[254]=1;var Q=e=>{if("function"==typeof TextEncoder&&TextEncoder.prototype.encode)return(new TextEncoder).encode(e);let t,i,n,a,r,o=e.length,s=0;for(a=0;a<o;a++)i=e.charCodeAt(a),55296==(64512&i)&&a+1<o&&(n=e.charCodeAt(a+1),56320==(64512&n)&&(i=65536+(i-55296<<10)+(n-56320),a++)),s+=i<128?1:i<2048?2:i<65536?3:4;for(t=new Uint8Array(s),r=0,a=0;r<s;a++)i=e.charCodeAt(a),55296==(64512&i)&&a+1<o&&(n=e.charCodeAt(a+1),56320==(64512&n)&&(i=65536+(i-55296<<10)+(n-56320),a++)),i<128?t[r++]=i:i<2048?(t[r++]=192|i>>>6,t[r++]=128|63&i):i<65536?(t[r++]=224|i>>>12,t[r++]=128|i>>>6&63,t[r++]=128|63&i):(t[r++]=240|i>>>18,t[r++]=128|i>>>12&63,t[r++]=128|i>>>6&63,t[r++]=128|63&i);return t},V=(e,t)=>{const i=t||e.length;if("function"==typeof TextDecoder&&TextDecoder.prototype.decode)return(new TextDecoder).decode(e.subarray(0,t));let n,a;const r=new Array(2*i);for(a=0,n=0;n<i;){let t=e[n++];if(t<128){r[a++]=t;continue}let o=J[t];if(o>4)r[a++]=65533,n+=o-1;else{for(t&=2===o?31:3===o?15:7;o>1&&n<i;)t=t<<6|63&e[n++],o--;o>1?r[a++]=65533:t<65536?r[a++]=t:(t-=65536,r[a++]=55296|t>>10&1023,r[a++]=56320|1023&t)}}return((e,t)=>{if(t<65534&&e.subarray&&q)return String.fromCharCode.apply(null,e.length===t?e:e.subarray(0,t));let i="";for(let n=0;n<t;n++)i+=String.fromCharCode(e[n]);return i})(r,a)},$=(e,t)=>{(t=t||e.length)>e.length&&(t=e.length);let i=t-1;for(;i>=0&&128==(192&e[i]);)i--;return i<0||0===i?t:i+J[e[i]]>t?i:t},ee={2:"need dictionary",1:"stream end",0:"","-1":"file error","-2":"stream error","-3":"data error","-4":"insufficient memory","-5":"buffer error","-6":"incompatible version"};var te=function(){this.input=null,this.next_in=0,this.avail_in=0,this.total_in=0,this.output=null,this.next_out=0,this.avail_out=0,this.total_out=0,this.msg="",this.state=null,this.data_type=2,this.adler=0};var ie=function(){this.text=0,this.time=0,this.xflags=0,this.os=0,this.extra=null,this.extra_len=0,this.name="",this.comment="",this.hcrc=0,this.done=!1};const ne=Object.prototype.toString,{Z_NO_FLUSH:ae,Z_FINISH:re,Z_OK:oe,Z_STREAM_END:se,Z_NEED_DICT:le,Z_STREAM_ERROR:de,Z_DATA_ERROR:fe,Z_MEM_ERROR:ce}=h;function he(e){this.options=X({chunkSize:65536,windowBits:15,to:""},e||{});const t=this.options;t.raw&&t.windowBits>=0&&t.windowBits<16&&(t.windowBits=-t.windowBits,0===t.windowBits&&(t.windowBits=-15)),!(t.windowBits>=0&&t.windowBits<16)||e&&e.windowBits||(t.windowBits+=32),t.windowBits>15&&t.windowBits<48&&0==(15&t.windowBits)&&(t.windowBits|=15),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new te,this.strm.avail_out=0;let i=Y.inflateInit2(this.strm,t.windowBits);if(i!==oe)throw new Error(ee[i]);if(this.header=new ie,Y.inflateGetHeader(this.strm,this.header),t.dictionary&&("string"==typeof t.dictionary?t.dictionary=Q(t.dictionary):"[object ArrayBuffer]"===ne.call(t.dictionary)&&(t.dictionary=new Uint8Array(t.dictionary)),t.raw&&(i=Y.inflateSetDictionary(this.strm,t.dictionary),i!==oe)))throw new Error(ee[i])}function ue(e,t){const i=new he(t);if(i.push(e),i.err)throw i.msg||ee[i.err];return i.result}he.prototype.push=function(e,t){const i=this.strm,n=this.options.chunkSize,a=this.options.dictionary;let r,o,s;if(this.ended)return!1;for(o=t===~~t?t:!0===t?re:ae,"[object ArrayBuffer]"===ne.call(e)?i.input=new Uint8Array(e):i.input=e,i.next_in=0,i.avail_in=i.input.length;;){for(0===i.avail_out&&(i.output=new Uint8Array(n),i.next_out=0,i.avail_out=n),r=Y.inflate(i,o),r===le&&a&&(r=Y.inflateSetDictionary(i,a),r===oe?r=Y.inflate(i,o):r===fe&&(r=le));i.avail_in>0&&r===se&&i.state.wrap>0&&0!==e[i.next_in];)Y.inflateReset(i),r=Y.inflate(i,o);switch(r){case de:case fe:case le:case ce:return this.onEnd(r),this.ended=!0,!1}if(s=i.avail_out,i.next_out&&(0===i.avail_out||r===se))if("string"===this.options.to){let e=$(i.output,i.next_out),t=i.next_out-e,a=V(i.output,e);i.next_out=t,i.avail_out=n-t,t&&i.output.set(i.output.subarray(e,e+t),0),this.onData(a)}else this.onData(i.output.length===i.next_out?i.output:i.output.subarray(0,i.next_out));if(r!==oe||0!==s){if(r===se)return r=Y.inflateEnd(this.strm),this.onEnd(r),this.ended=!0,!0;if(0===i.avail_in)break}}return!0},he.prototype.onData=function(e){this.chunks.push(e)},he.prototype.onEnd=function(e){e===oe&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=W(this.chunks)),this.chunks=[],this.err=e,this.msg=this.strm.msg};var we=he,be=ue,me=function(e,t){return(t=t||{}).raw=!0,ue(e,t)},ke=ue,_e=h,ge={Inflate:we,inflate:be,inflateRaw:me,ungzip:ke,constants:_e};e.Inflate=we,e.constants=_e,e.default=ge,e.inflate=be,e.inflateRaw=me,e.ungzip=ke,Object.defineProperty(e,"__esModule",{value:!0})}));
+/* ---- Minimal PDF form-field reader (v1.9.22) ----------------------------
+   Reads AcroForm field values (and XFA <datasets> values as a fallback) from a
+   PDF given as an ArrayBuffer, without any external library, so the tool stays
+   a single offline file. Handles: incremental updates (later objects win),
+   object streams (FlateDecode via pako), standard security handler R2-R4
+   (RC4 40/128 and AESV2) with an empty user password. Not a renderer.
+   Exposes: readPdfFormFields(arrayBuffer) -> { fields:{name:value}, enc:{...}, notes:[] } */
+var PDFForm = (function(){
+  'use strict';
+  /* ---------- MD5 (RFC 1321) ---------- */
+  function md5(bytes){
+    const K = new Uint32Array(64), S = [7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+    for(let i=0;i<64;i++) K[i] = Math.floor(Math.abs(Math.sin(i+1))*4294967296)>>>0;
+    const len = bytes.length, padLen = ((len+8)>>6<<6)+64;
+    const m = new Uint8Array(padLen); m.set(bytes); m[len]=0x80;
+    const bits = len*8; m[padLen-8]=bits&255; m[padLen-7]=(bits>>>8)&255; m[padLen-6]=(bits>>>16)&255; m[padLen-5]=(bits>>>24)&255;
+    let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+    const w = new Uint32Array(16);
+    for(let off=0;off<padLen;off+=64){
+      for(let i=0;i<16;i++) w[i] = m[off+i*4] | (m[off+i*4+1]<<8) | (m[off+i*4+2]<<16) | (m[off+i*4+3]<<24);
+      let a=a0,b=b0,c=c0,d=d0;
+      for(let i=0;i<64;i++){
+        let f,g;
+        if(i<16){ f=(b&c)|(~b&d); g=i; }
+        else if(i<32){ f=(d&b)|(~d&c); g=(5*i+1)%16; }
+        else if(i<48){ f=b^c^d; g=(3*i+5)%16; }
+        else { f=c^(b|~d); g=(7*i)%16; }
+        const t = d; d=c; c=b;
+        const x = (a + f + K[i] + w[g])>>>0;
+        b = (b + ((x<<S[i])|(x>>>(32-S[i]))))>>>0; a=t;
+      }
+      a0=(a0+a)>>>0; b0=(b0+b)>>>0; c0=(c0+c)>>>0; d0=(d0+d)>>>0;
+    }
+    const out = new Uint8Array(16);
+    [a0,b0,c0,d0].forEach((v,i)=>{ out[i*4]=v&255; out[i*4+1]=(v>>>8)&255; out[i*4+2]=(v>>>16)&255; out[i*4+3]=(v>>>24)&255; });
+    return out;
+  }
+  /* ---------- RC4 ---------- */
+  function rc4(key, data){
+    const S = new Uint8Array(256); for(let i=0;i<256;i++) S[i]=i;
+    for(let i=0,j=0;i<256;i++){ j=(j+S[i]+key[i%key.length])&255; const t=S[i]; S[i]=S[j]; S[j]=t; }
+    const out = new Uint8Array(data.length);
+    for(let k=0,i=0,j=0;k<data.length;k++){ i=(i+1)&255; j=(j+S[i])&255; const t=S[i]; S[i]=S[j]; S[j]=t; out[k]=data[k]^S[(S[i]+S[j])&255]; }
+    return out;
+  }
+  /* ---------- AES-128 CBC decrypt (FIPS-197) ---------- */
+  const SBOX = new Uint8Array(256), INV = new Uint8Array(256);
+  (function(){
+    let p=1,q=1;
+    do{ p = p ^ (p<<1) ^ (p&0x80 ? 0x1b : 0); p&=255;
+        q ^= q<<1; q ^= q<<2; q ^= q<<4; q&=255; if(q&0x80) q^=0x09;
+        const x = q ^ (q<<1) ^ (q<<2) ^ (q<<3) ^ (q<<4);
+        SBOX[p] = (x ^ (x>>8) ^ 0x63)&255;
+    }while(p!==1);
+    SBOX[0]=0x63; for(let i=0;i<256;i++) INV[SBOX[i]]=i;
+  })();
+  const xt = x => ((x<<1) ^ ((x&0x80)?0x1b:0))&255;
+  const mul = (a,b)=>{ let r=0; while(b){ if(b&1) r^=a; a=xt(a); b>>=1; } return r; };
+  function expandKey(key){
+    const Nk=key.length/4, Nr=Nk+6, w = new Uint8Array(16*(Nr+1)); w.set(key);
+    let rcon=1;
+    for(let i=Nk*4;i<w.length;i+=4){
+      let t=[w[i-4],w[i-3],w[i-2],w[i-1]];
+      if((i/4)%Nk===0){ t=[SBOX[t[1]]^rcon, SBOX[t[2]], SBOX[t[3]], SBOX[t[0]]]; rcon=xt(rcon); }
+      else if(Nk>6 && (i/4)%Nk===4){ t=t.map(v=>SBOX[v]); }
+      for(let j=0;j<4;j++) w[i+j] = w[i-Nk*4+j]^t[j];
+    }
+    return {w, Nr};
+  }
+  function decryptBlock(ks, inp, out){
+    const {w, Nr} = ks; const s = new Uint8Array(inp);
+    const addRk = r => { for(let i=0;i<16;i++) s[i]^=w[r*16+i]; };
+    addRk(Nr);
+    for(let r=Nr-1;r>=0;r--){
+      /* InvShiftRows */
+      let t;
+      t=s[13]; s[13]=s[9]; s[9]=s[5]; s[5]=s[1]; s[1]=t;
+      t=s[2]; s[2]=s[10]; s[10]=t; t=s[6]; s[6]=s[14]; s[14]=t;
+      t=s[3]; s[3]=s[7]; s[7]=s[11]; s[11]=s[15]; s[15]=t;
+      for(let i=0;i<16;i++) s[i]=INV[s[i]];
+      addRk(r);
+      if(r>0){ for(let c=0;c<4;c++){ const a0=s[c*4],a1=s[c*4+1],a2=s[c*4+2],a3=s[c*4+3];
+        s[c*4]  = mul(a0,14)^mul(a1,11)^mul(a2,13)^mul(a3,9);
+        s[c*4+1]= mul(a0,9)^mul(a1,14)^mul(a2,11)^mul(a3,13);
+        s[c*4+2]= mul(a0,13)^mul(a1,9)^mul(a2,14)^mul(a3,11);
+        s[c*4+3]= mul(a0,11)^mul(a1,13)^mul(a2,9)^mul(a3,14); } }
+    }
+    out.set(s);
+  }
+  function aesCbcDecrypt(key, data){
+    if(data.length < 32) return new Uint8Array(0);
+    const ks = expandKey(key), n = Math.floor(data.length/16)-1, out = new Uint8Array(n*16), blk = new Uint8Array(16);
+    let prev = data.subarray(0,16);
+    for(let i=0;i<n;i++){
+      const cur = data.subarray(16+i*16, 32+i*16);
+      decryptBlock(ks, cur, blk);
+      for(let j=0;j<16;j++) out[i*16+j] = blk[j]^prev[j];
+      prev = cur;
+    }
+    const pad = out[out.length-1];
+    return (pad>=1 && pad<=16) ? out.subarray(0, out.length-pad) : out;
+  }
+  /* ---------- Lexer / object parser ---------- */
+  const WS = c => c===0x20||c===0x0a||c===0x0d||c===0x09||c===0x0c||c===0x00;
+  const DELIM = c => c===0x28||c===0x29||c===0x3c||c===0x3e||c===0x5b||c===0x5d||c===0x7b||c===0x7d||c===0x2f||c===0x25;
+  class Ref { constructor(n,g){ this.num=n; this.gen=g; } }
+  class Name { constructor(s){ this.name=s; } }
+  class PStr { constructor(b){ this.bytes=b; } }
+  class Parser {
+    constructor(buf, pos){ this.b=buf; this.p=pos||0; }
+    skipWs(){ while(this.p<this.b.length){ const c=this.b[this.p]; if(WS(c)) this.p++; else if(c===0x25){ while(this.p<this.b.length && this.b[this.p]!==0x0a && this.b[this.p]!==0x0d) this.p++; } else break; } }
+    token(){ this.skipWs(); const s=this.p; while(this.p<this.b.length && !WS(this.b[this.p]) && !DELIM(this.b[this.p])) this.p++; return latin1(this.b.subarray(s,this.p)); }
+    parse(){
+      this.skipWs(); if(this.p>=this.b.length) throw new Error('eof');
+      const c = this.b[this.p];
+      if(c===0x2f){ this.p++; const s=this.p; while(this.p<this.b.length && !WS(this.b[this.p]) && !DELIM(this.b[this.p])) this.p++;
+        return new Name(latin1(this.b.subarray(s,this.p)).replace(/#([0-9a-fA-F]{2})/g,(m,h)=>String.fromCharCode(parseInt(h,16)))); }
+      if(c===0x28) return this.litString();
+      if(c===0x3c){ if(this.b[this.p+1]===0x3c) return this.dict(); return this.hexString(); }
+      if(c===0x5b){ this.p++; const a=[]; for(;;){ this.skipWs(); if(this.b[this.p]===0x5d){ this.p++; return a; } a.push(this.parse()); } }
+      if(c===0x5d||c===0x3e||c===0x29){ this.p++; return this.parse(); }
+      const t = this.token();
+      if(t==='true') return true; if(t==='false') return false; if(t==='null') return null;
+      if(/^[+-]?\d*\.?\d*$/.test(t) && t!=='' && t!=='.'){
+        const save=this.p; const t2=this.token();
+        if(/^\d+$/.test(t) && /^\d+$/.test(t2)){ const save2=this.p; const t3=this.token(); if(t3==='R') return new Ref(+t,+t2); this.p=save2; }
+        this.p=save; return parseFloat(t);
+      }
+      if(t==='') { this.p++; return null; }
+      return {op:t};
+    }
+    dict(){
+      this.p+=2; const d={};
+      for(;;){ this.skipWs(); if(this.b[this.p]===0x3e && this.b[this.p+1]===0x3e){ this.p+=2; return d; }
+        const k=this.parse(); if(!(k instanceof Name)){ if(this.p>=this.b.length) return d; continue; }
+        d[k.name]=this.parse(); }
+    }
+    litString(){
+      this.p++; let depth=1; const out=[];
+      while(this.p<this.b.length){ let c=this.b[this.p++];
+        if(c===0x5c){ c=this.b[this.p++];
+          if(c===0x6e) out.push(10); else if(c===0x72) out.push(13); else if(c===0x74) out.push(9); else if(c===0x62) out.push(8); else if(c===0x66) out.push(12);
+          else if(c>=0x30&&c<=0x37){ let v=c-0x30; for(let k=0;k<2&&this.b[this.p]>=0x30&&this.b[this.p]<=0x37;k++) v=v*8+(this.b[this.p++]-0x30); out.push(v&255); }
+          else if(c===0x0d){ if(this.b[this.p]===0x0a) this.p++; } else if(c===0x0a){} else out.push(c);
+        } else if(c===0x28){ depth++; out.push(c); } else if(c===0x29){ if(--depth===0) break; out.push(c); } else out.push(c); }
+      return new PStr(Uint8Array.from(out));
+    }
+    hexString(){
+      this.p++; const hex=[]; while(this.p<this.b.length && this.b[this.p]!==0x3e){ const c=this.b[this.p++]; if(!WS(c)) hex.push(String.fromCharCode(c)); } this.p++;
+      let h=hex.join(''); if(h.length%2) h+='0'; const out=new Uint8Array(h.length/2); for(let i=0;i<out.length;i++) out[i]=parseInt(h.substr(i*2,2),16); return new PStr(out);
+    }
+  }
+  function latin1(u8){ let s=''; for(let i=0;i<u8.length;i+=8192) s+=String.fromCharCode.apply(null, u8.subarray(i,i+8192)); return s; }
+  function findSeq(buf, seq, from){ const f=seq.charCodeAt(0); outer: for(let i=from;i<=buf.length-seq.length;i++){ if(buf[i]!==f) continue; for(let j=1;j<seq.length;j++) if(buf[i+j]!==seq.charCodeAt(j)) continue outer; return i; } return -1; }
+  /* ---------- Document ---------- */
+  function readPdfFormFields(arrayBuffer){
+    const buf = new Uint8Array(arrayBuffer);
+    const notes = [];
+    const objs = {};           /* num -> {value, gen, streamRaw, inObjStm} */
+    const text = latin1(buf);
+    if(text.indexOf('%PDF') !== 0 && text.indexOf('%PDF') < 0) throw new Error('not a PDF file');
+    /* 1. scan every "n g obj" in file order; later definitions win */
+    const re = /(?:^|[\s>\]\)])(\d+)\s+(\d+)\s+obj\b/g; let m; const raw=[];
+    while((m = re.exec(text))){
+      const start = m.index + m[0].length;
+      try{
+        const P = new Parser(buf, start); const v = P.parse();
+        let streamRaw = null;
+        P.skipWs();
+        if(text.substr(P.p, 6)==='stream'){
+          let p = P.p+6; if(buf[p]===0x0d) p++; if(buf[p]===0x0a) p++;
+          let len = (v && typeof v==='object' && !Array.isArray(v)) ? v.Length : null;
+          if(len instanceof Ref) len = null;   /* resolved later via endstream search */
+          let end = (typeof len==='number') ? p+len : -1;
+          if(end<0 || end>buf.length || findSeq(buf,'endstream',end)<0 || findSeq(buf,'endstream',end)-end>4){ end = findSeq(buf,'endstream',p); if(end<0) end=buf.length; while(end>p && (buf[end-1]===0x0a||buf[end-1]===0x0d)) end--; }
+          streamRaw = buf.subarray(p, end);
+        }
+        raw.push({num:+m[1], gen:+m[2], value:v, streamRaw});
+      }catch(e){ /* not a real object (binary coincidence) */ }
+    }
+    /* 2. encryption */
+    let enc = null, docId = null;
+    const trailerDicts = [];
+    { const tre = /trailer\s*<</g; let t; while((t=tre.exec(text))){ try{ trailerDicts.push(new Parser(buf, t.index+7).parse()); }catch(e){} } }
+    for(const o of raw){ const v=o.value; if(v && typeof v==='object' && v.Type instanceof Name && v.Type.name==='XRef') trailerDicts.push(v); }
+    for(const d of trailerDicts){ if(d.Encrypt) enc = d.Encrypt; if(d.ID) docId = d.ID; }
+    const byNum = {}; for(const o of raw) byNum[o.num]=o;   /* last direct definition wins */
+    const resolveRaw = v => (v instanceof Ref && byNum[v.num]) ? byNum[v.num].value : v;
+    let crypt = null;
+    if(enc){
+      const E = resolveRaw(enc);
+      const filter = E.Filter && E.Filter.name;
+      if(filter!=='Standard') throw new Error('unsupported PDF security handler '+filter);
+      const V = E.V||0, R = E.R||2, Len = (E.Length||40)/8;
+      let cfm = 'V2';
+      if(V>=4){ const cf = E.CF && E.CF[(E.StmF&&E.StmF.name)||'Identity']; cfm = (cf && cf.CFM && cf.CFM.name) || 'None'; }
+      if(R>4) throw new Error('AES-256 (R'+R+') encrypted PDFs are not supported - resave the form with Adobe Reader compatibility, or type the values');
+      const PAD = Uint8Array.from([0x28,0xBF,0x4E,0x5E,0x4E,0x75,0x8A,0x41,0x64,0x00,0x4E,0x56,0xFF,0xFA,0x01,0x08,0x2E,0x2E,0x00,0xB6,0xD0,0x68,0x3E,0x80,0x2F,0x0C,0xA9,0xFE,0x64,0x53,0x69,0x7A]);
+      const O = resolveRaw(E.O).bytes, P = E.P|0;
+      const id0 = docId && docId[0] ? resolveRaw(docId[0]).bytes : new Uint8Array(0);
+      const parts = [PAD, O.subarray(0,32), Uint8Array.from([P&255,(P>>8)&255,(P>>16)&255,(P>>>24)&255]), id0];
+      if(R>=4 && E.EncryptMetadata===false) parts.push(Uint8Array.from([255,255,255,255]));
+      let tot=0; for(const p of parts) tot+=p.length; const inp=new Uint8Array(tot); let off=0; for(const p of parts){ inp.set(p,off); off+=p.length; }
+      let key = md5(inp); const n = (R===2) ? 5 : Len;
+      if(R>=3){ for(let i=0;i<50;i++) key = md5(key.subarray(0,n)); }
+      key = key.subarray(0,n);
+      /* verify the empty user password against /U */
+      const U = resolveRaw(E.U).bytes; let ok;
+      if(R===2){ const u = rc4(key, PAD); ok = u.every((b,i)=>b===U[i]); }
+      else { const inp2 = new Uint8Array(32+id0.length); inp2.set(PAD); inp2.set(id0,32); let h = rc4(key, md5(inp2)); for(let i=1;i<=19;i++){ const k2 = key.map(b=>b^i); h = rc4(k2,h); } ok = h.subarray(0,16).every((b,i)=>b===U[i]); }
+      if(!ok) throw new Error('this PDF needs a password to open');
+      const aes = cfm==='AESV2';
+      crypt = { aes, cfm, objKey(num,gen){ const k=new Uint8Array(key.length+5+(aes?4:0)); k.set(key); k[key.length]=num&255; k[key.length+1]=(num>>8)&255; k[key.length+2]=(num>>16)&255; k[key.length+3]=gen&255; k[key.length+4]=(gen>>8)&255; if(aes){ k.set([0x73,0x41,0x6C,0x54], key.length+5); } return md5(k).subarray(0, Math.min(16, key.length+5)); },
+                decrypt(num,gen,data){ if(cfm==='None') return data; const k=this.objKey(num,gen); return aes ? aesCbcDecrypt(k,data) : rc4(k,data); } };
+      notes.push('encrypted PDF ('+(aes?'AES-128':'RC4')+', R'+R+') opened with the empty user password');
+    }
+    /* 3. materialize: decrypt strings in direct objects, expand object streams (file order, later wins) */
+    const decStrings = (v, num, gen) => {
+      if(v instanceof PStr) return crypt ? new PStr(crypt.decrypt(num,gen,v.bytes)) : v;
+      if(Array.isArray(v)) return v.map(x=>decStrings(x,num,gen));
+      if(v && typeof v==='object' && !(v instanceof Ref) && !(v instanceof Name)){ const o={}; for(const k in v) o[k]=decStrings(v[k],num,gen); return o; }
+      return v;
+    };
+    const streamData = (o) => {
+      if(!o.streamRaw) return null;
+      let d = o.streamRaw; if(crypt && !o.inObjStm) d = crypt.decrypt(o.num, o.gen, d);
+      const f = o.value.Filter; const filters = Array.isArray(f) ? f : (f ? [f] : []);
+      for(const fl of filters){ const nm = fl && fl.name;
+        if(nm==='FlateDecode'){ d = pako.inflate(d); const dp = o.value.DecodeParms; if(dp && !Array.isArray(dp) && dp.Predictor>=10) d = pngUnpredict(d, dp.Columns||1, dp.Colors||1, dp.BitsPerComponent||8); }
+        else if(nm) throw new Error('unsupported stream filter '+nm); }
+      return d;
+    };
+    for(const o of raw){
+      objs[o.num] = { num:o.num, gen:o.gen, value: decStrings(o.value, o.num, o.gen), streamRaw:o.streamRaw, inObjStm:false };
+      const v = o.value;
+      if(v && typeof v==='object' && v.Type instanceof Name && v.Type.name==='ObjStm' && o.streamRaw){
+        try{
+          const data = streamData(objs[o.num]);
+          const N = v.N, First = v.First; const hdr = latin1(data.subarray(0, First)).trim().split(/\s+/).map(Number);
+          for(let i=0;i<N;i++){ const onum = hdr[i*2], ooff = hdr[i*2+1];
+            try{ const P = new Parser(data, First+ooff); objs[onum] = { num:onum, gen:0, value:P.parse(), streamRaw:null, inObjStm:true }; }catch(e){} }
+        }catch(e){ notes.push('object stream '+o.num+' unreadable: '+e.message); }
+      }
+    }
+    const get = v => { let guard=0; while(v instanceof Ref && guard++<32){ const o=objs[v.num]; v = o ? o.value : null; } return v; };
+    /* 4. catalog -> AcroForm */
+    let catalog = null;
+    for(const d of trailerDicts){ if(d.Root){ const c = get(d.Root); if(c && c.AcroForm!==undefined) catalog = c; } }
+    if(!catalog){ for(const n in objs){ const v=objs[n].value; if(v && typeof v==='object' && v.Type instanceof Name && v.Type.name==='Catalog' && v.AcroForm) catalog = v; } }
+    if(!catalog) throw new Error('no fillable form found in this PDF');
+    const acro = get(catalog.AcroForm);
+    const fields = {}, full = {};
+    const str = v => { v = get(v); if(v instanceof PStr){ const b=v.bytes; if(b.length>=2 && b[0]===0xFE && b[1]===0xFF){ let s=''; for(let i=2;i+1<b.length;i+=2) s+=String.fromCharCode((b[i]<<8)|b[i+1]); return s; } return latin1(b); } if(v instanceof Name) return v.name; if(typeof v==='number'||typeof v==='boolean') return String(v); return null; };
+    const walk = (ref, prefix, inherited) => {
+      const f = get(ref); if(!f || typeof f!=='object') return;
+      const t = str(f.T); const name = t!=null ? (prefix ? prefix+'.'+t : t) : prefix;
+      const ft = f.FT ? f.FT.name : inherited;
+      if(f.Kids && Array.isArray(get(f.Kids))){ for(const k of get(f.Kids)) walk(k, name, ft); }
+      if(f.V!==undefined && t!=null){ let val = str(f.V); if(val!=null){ if(ft==='Btn') val = (val==='Off') ? '' : val; full[name]=val; const leaf = t.replace(/\[\d+\]$/,''); if(!(leaf in fields) || fields[leaf]==='') fields[leaf]=val; } }
+    };
+    if(acro && acro.Fields) for(const fr of get(acro.Fields)||[]) walk(fr, '', null);
+    /* 5. XFA datasets fallback (hybrid forms filled by XFA-aware software) */
+    let xfaCount = 0;
+    if(acro && acro.XFA){
+      const xa = get(acro.XFA); let ds = null;
+      if(Array.isArray(xa)){ for(let i=0;i+1<xa.length;i+=2){ if(str(xa[i])==='datasets') ds = xa[i+1]; } } else ds = acro.XFA;
+      const dso = (ds instanceof Ref) ? objs[ds.num] : null;
+      if(dso && dso.streamRaw){
+        try{
+          const xml = new TextDecoder('utf-8').decode(streamData(dso));
+          const body = (xml.match(/<xfa:data>([\s\S]*?)<\/xfa:data>/)||[])[1] || xml;
+          const tre = /<([A-Za-z_][\w.-]*)(?:\s[^>]*)?>([^<]*)<\/\1>/g; let mm;
+          while((mm = tre.exec(body))){ const k = mm[1], v = mm[2].replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#(\d+);/g,(a,c)=>String.fromCharCode(+c)).trim(); if(v && (!(k in fields) || fields[k]==='')){ fields[k]=v; xfaCount++; } }
+        }catch(e){ notes.push('XFA data unreadable: '+e.message); }
+      }
+    }
+    return { fields, full, notes, xfaCount, fieldCount: Object.keys(fields).length };
+  }
+  function pngUnpredict(d, cols, colors, bpc){
+    const bpp = Math.ceil(colors*bpc/8), rowLen = Math.ceil(colors*bpc*cols/8), rows = Math.floor(d.length/(rowLen+1));
+    const out = new Uint8Array(rows*rowLen); let prev = new Uint8Array(rowLen);
+    for(let r=0;r<rows;r++){ const ft = d[r*(rowLen+1)], row = d.subarray(r*(rowLen+1)+1, (r+1)*(rowLen+1)); const cur = new Uint8Array(rowLen);
+      for(let i=0;i<rowLen;i++){ const a = i>=bpp?cur[i-bpp]:0, b = prev[i], c = i>=bpp?prev[i-bpp]:0; let x=row[i];
+        if(ft===1) x+=a; else if(ft===2) x+=b; else if(ft===3) x+=(a+b)>>1; else if(ft===4){ const p=a+b-c, pa=Math.abs(p-a), pb=Math.abs(p-b), pc=Math.abs(p-c); x += (pa<=pb&&pa<=pc)?a:(pb<=pc?b:c); }
+        cur[i]=x&255; }
+      out.set(cur, r*rowLen); prev=cur; }
+    return out;
+  }
+  return { readPdfFormFields, md5, rc4, aesCbcDecrypt };
+})();
+
 /* ---- MGRS orbit point (ported from sales v0.6 in v1.9.17) ---- */
 function parseGrid(){
   const el = $('cru_mgrs'); if(!el) return null;
@@ -3238,7 +3849,7 @@ function computeAll(){
   /* default trip type from the airfield pair: same field -> Orbit, otherwise
      One-way; a manual toggle click always wins */
   if(!cruTripManual && dep.airport && dst.airport && $('cru_trip')){
-    $('cru_trip').value = (apCode(dep.airport) === apCode(dst.airport)) ? 'rt' : 'ow';
+    $('cru_trip').value = sameField(dep.airport, dst.airport) ? 'rt' : 'ow';
   }
   updateTripUI();   /* keep toggle + field visibility right even if we bail below */
   const altOn = $('alt_enable').checked;
@@ -3300,6 +3911,7 @@ function computeAll(){
   const rDst = E.computeAirfield(dst, wbT, cfg);
   const rAlt = alt ? E.computeAirfield(alt, wbT, cfg) : null;
 
+  lzWarns('dep', rDep.warn); lzWarns('dst', rDst.warn); if(rAlt) lzWarns('alt', rAlt.warn);
   pushWarns('DEP', rDep.warn);
   for(const f of [0,10,20]){ pushWarns('DEP takeoff F'+f, (rDep.takeoff[f]||{}).warn); }
   pushWarns('DEP accel-stop', (rDep.accelStop[10]||{}).warn);
@@ -3583,7 +4195,7 @@ function aboutHtml(){
     ['Handling', 'Performance and W&B data in this file come from the unit’s flight manual and Form F documents. Treat the file like those source documents.']
   ];
   return md.map(([t,b])=>'<h3>'+esc(t)+'</h3><p>'+esc(b)+'</p>').join('') +
-    '<p class="acnote">OA-1K TOLD engine v1.9.18 · built '+esc(new Date().toISOString().slice(0,10))+' · single-file, runs from file:// offline (except METAR).</p>';
+    '<p class="acnote">OA-1K TOLD engine v1.9.22 · built '+esc(new Date().toISOString().slice(0,10))+' · single-file, runs from file:// offline (except METAR).</p>';
 }
 
 
@@ -3602,13 +4214,17 @@ function init(){
   for(const side of ['dep','dst','alt']){
     const c = $(side+'_clear');
     if(c) c.addEventListener('click', function(){ clearAirport(side); });
+    bindLZLib(side);
+    const lb = $(side+'_lzbtn');
+    if(lb) lb.addEventListener('click', function(){ if(isLZ(side)) clearAirport(side); else chooseAirport(side, LZ_PLACEHOLDER); });
   }
   loadState();
+  lzFillPicks(); bindLZFile();
   applyTheme();
   for(const side of ['dep','dst','alt']){
     if(state[side].code){
       const a = byCode[state[side].code];
-      if(a){ $(side+'_search').value = apCode(a)+' — '+(a.name||''); populateRunwaySelect(side); }
+      if(a){ const ar = selectedAirport(side) || a; $(side+'_search').value = apCode(ar)+' — '+(ar.name||''); showLZBox(side); populateRunwaySelect(side); }
     }
     $(side+'_metarBtn').addEventListener('click', ()=>fetchMetar(side));
     $(side+'_metarPaste').addEventListener('click', ()=>pasteMetar(side));
@@ -3630,6 +4246,7 @@ function init(){
     if(/^(dep|dst|alt)_len$/.test(id)){ const s=id.slice(0,3); state[s].lenMode='manual'; $(s+'_lenmode').hidden=false; }
     if(/^(dep|dst|alt)_(wdir|wspd)$/.test(id)) populateRunwaySelect(id.slice(0,3));
     if(id==='cru_mgrs') updateTripUI();
+    if(/^(dep|dst|alt)_lz_/.test(id)){ const s = id.slice(0,3); showLZBox(s); populateRunwaySelect(s); }
     if(/^(dep|dst|alt)_(windovr|slopeovr)$/.test(id)){
       const s = id.slice(0,3);
       $(s+'_windovr_b').hidden = num(s+'_windovr')===null;
@@ -3640,6 +4257,7 @@ function init(){
   });
   panel.addEventListener('change', function(ev){
     const id = ev.target.id||'';
+    if(/^(dep|dst|alt)_lz_surf$/.test(id)){ populateRunwaySelect(id.slice(0,3)); }
     if(/^(dep|dst|alt)_runway$/.test(id)){
       const s = id.slice(0,3); state[s].rwyVal = ev.target.value; applyRunwayAutos(s);
     }
@@ -3682,7 +4300,7 @@ function init(){
     const d = new Date();
     $('zclock').textContent = String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')+'Z';
   }, 1000);
-  $('footerBuild').textContent = 'engine v1.9.18 · MGRS orbit point';
+  $('footerBuild').textContent = 'engine v1.9.22 · MGRS orbit point · Custom LZ · AF 3822 import';
   /* W&B tab */
   if(window.wbInit){
     window.wbInit();
